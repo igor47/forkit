@@ -33,8 +33,8 @@ describe("receipts", () => {
       const redirect = response.headers.get("HX-Redirect")
       expect(redirect).toMatch(/^\/receipts\//)
 
-      // Extract receipt ID from redirect URL
-      const id = redirect!.split("/receipts/")[1]!
+      // Extract receipt ID from redirect URL (format: /receipts/{id}/edit)
+      const id = redirect!.split("/receipts/")[1]!.split("/")[0]!
 
       // Verify file exists on disk
       const receipt = getReceipt(id)

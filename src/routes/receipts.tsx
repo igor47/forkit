@@ -83,7 +83,7 @@ receiptsRoutes.post("/receipts/upload", async (c) => {
     }
   }
 
-  c.header("HX-Redirect", `/receipts/${id}`)
+  c.header("HX-Redirect", `/receipts/${id}/edit`)
   return c.body(null, 204)
 })
 
@@ -147,7 +147,19 @@ receiptsRoutes.get("/receipts/:id/edit", (c) => {
 
   const items = getReceiptItems(receipt.id)
   const claimerName = c.req.query("name") ?? ""
-  return c.html(<ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />)
+  const isHtmx = c.req.header("HX-Request") === "true"
+
+  if (isHtmx) {
+    return c.html(<ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />)
+  }
+
+  // Full page render for direct navigation (e.g. after upload redirect)
+  return c.render(
+    <div class="container mt-4">
+      <ReceiptView receipt={receipt} items={items} claimerName={claimerName} editMode />
+    </div>,
+    { title: receipt.restaurant_name || "Receipt" }
+  )
 })
 
 receiptsRoutes.get("/receipts/:id/claim-form", (c) => {
@@ -158,6 +170,8 @@ receiptsRoutes.get("/receipts/:id/claim-form", (c) => {
 
   const items = getReceiptItems(receipt.id)
   const claimerName = c.req.query("name") ?? ""
+  const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
+  c.header("HX-Replace-Url", `/receipts/${receipt.id}${nameParam}`)
   return c.html(<ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />)
 })
 
@@ -283,9 +297,11 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
     gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
   })
 
-  // Return to claim mode
+  // Return to claim mode, replace URL to receipt view (not edit)
   const updatedReceipt = getReceipt(receipt.id)!
   const updatedItems = getReceiptItems(receipt.id)
+  const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
+  c.header("HX-Replace-Url", `/receipts/${receipt.id}${nameParam}`)
   return c.html(
     <ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName={claimerName} />
   )

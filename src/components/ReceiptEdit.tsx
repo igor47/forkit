@@ -239,12 +239,17 @@ export const ReceiptEdit = ({
           <div class="col-6">
             <label for="edit-gratuity" class="form-label form-label-sm">
               Gratuity
+              {!receipt.gratuity_cents && (
+                <span class="text-danger ms-1" title="No gratuity set">
+                  <i class="bi bi-exclamation-circle-fill"></i>
+                </span>
+              )}
             </label>
             <div class="input-group input-group-sm">
               <span class="input-group-text">$</span>
               <input
                 type="number"
-                class="form-control form-control-sm"
+                class={`form-control form-control-sm${!receipt.gratuity_cents ? " is-invalid" : ""}`}
                 id="edit-gratuity"
                 name="gratuity"
                 value={centsToDollars(receipt.gratuity_cents)}

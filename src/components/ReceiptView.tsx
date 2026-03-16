@@ -1,14 +1,21 @@
 import type { ReceiptItem } from "@src/db/receipt_items"
 import type { Receipt } from "@src/db/receipts"
 import { ReceiptClaim } from "./ReceiptClaim"
+import { ReceiptEdit } from "./ReceiptEdit"
 
 export interface ReceiptViewProps {
   receipt: Receipt
   items: ReceiptItem[]
   claimerName: string
+  editMode?: boolean
 }
 
-export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) => {
+export const ReceiptView = ({
+  receipt,
+  items,
+  claimerName,
+  editMode = false,
+}: ReceiptViewProps) => {
   const uploadUrl = `/uploads/${receipt.filename}`
 
   return (
@@ -40,10 +47,11 @@ export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) =
             <div class="mt-2">
               <button
                 type="button"
-                class="btn btn-sm btn-outline-secondary"
+                class="btn btn-sm btn-primary"
                 hx-get={`/receipts/${receipt.id}/edit${claimerName ? `?name=${encodeURIComponent(claimerName)}` : ""}`}
                 hx-target="#receipt-content"
                 hx-swap="innerHTML"
+                hx-replace-url={`/receipts/${receipt.id}/edit`}
               >
                 Edit Items
               </button>
@@ -68,7 +76,11 @@ export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) =
               <p class="text-muted">Not yet processed.</p>
             )}
 
-            {items.length > 0 && (
+            {items.length > 0 && editMode && (
+              <ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />
+            )}
+
+            {items.length > 0 && !editMode && (
               <ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />
             )}
           </div>
