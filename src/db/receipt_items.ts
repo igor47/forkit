@@ -12,15 +12,15 @@ export interface ReceiptItem {
 
 export function createReceiptItems(
   receiptId: string,
-  items: { name: string; price_cents: number }[]
+  items: { name: string; price_cents: number; claimed_by?: string | null }[]
 ): ReceiptItem[] {
   const db = getDb()
   const stmt = db.prepare(
-    "INSERT INTO receipt_items (id, receipt_id, name, price_cents) VALUES (?, ?, ?, ?)"
+    "INSERT INTO receipt_items (id, receipt_id, name, price_cents, claimed_by) VALUES (?, ?, ?, ?, ?)"
   )
 
   for (const item of items) {
-    stmt.run(ulid(), receiptId, item.name, item.price_cents)
+    stmt.run(ulid(), receiptId, item.name, item.price_cents, item.claimed_by ?? null)
   }
 
   return getReceiptItems(receiptId)

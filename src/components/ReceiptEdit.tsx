@@ -65,6 +65,7 @@ export const ReceiptEdit = ({
                   <td>
                     <span class="form-control-plaintext form-control-sm">{item.name}</span>
                     <input type="hidden" name={`name-${i}`} value={item.name} />
+                    <input type="hidden" name={`claimed-by-${i}`} value={item.claimed_by ?? ""} />
                   </td>
                   <td>
                     <span class="form-control-plaintext form-control-sm text-end">
@@ -117,6 +118,7 @@ export const ReceiptEdit = ({
               ) : (
                 <tr key={item.id}>
                   <td>
+                    <input type="hidden" name={`claimed-by-${i}`} value={item.claimed_by ?? ""} />
                     <input
                       type="text"
                       class="form-control form-control-sm"

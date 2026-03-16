@@ -181,19 +181,24 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
   // Collect current form items
   const removeIndex =
     action === "remove_item" ? parseInt((formData.get("remove_index") as string) || "-1", 10) : -1
-  const formItems: { name: string; price_cents: number }[] = []
+  const formItems: { name: string; price_cents: number; claimed_by: string | null }[] = []
   for (let i = 0; i < itemCount; i++) {
     if (i === removeIndex) continue
     const name = (formData.get(`name-${i}`) as string) ?? ""
     const price = (formData.get(`price-${i}`) as string) ?? ""
+    const claimedBy = (formData.get(`claimed-by-${i}`) as string) || null
     if (name.trim()) {
-      formItems.push({ name: name.trim(), price_cents: dollarsToCents(price) ?? 0 })
+      formItems.push({
+        name: name.trim(),
+        price_cents: dollarsToCents(price) ?? 0,
+        claimed_by: claimedBy,
+      })
     }
   }
 
   // Helper to build re-render data
   const buildEditRerender = (
-    editItems: { name: string; price_cents: number }[],
+    editItems: { name: string; price_cents: number; claimed_by: string | null }[],
     opts: { extraRows?: number; splitIndex?: number | null } = {}
   ) => {
     const pseudoItems = editItems.map((item, i) => ({
@@ -201,7 +206,7 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
       receipt_id: receipt.id,
       name: item.name,
       price_cents: item.price_cents,
-      claimed_by: null,
+      claimed_by: item.claimed_by,
       created_at: "",
     }))
     const editReceipt = {
@@ -243,12 +248,13 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
     if (item) {
       const basePrice = Math.floor(item.price_cents / splitCount)
       const remainder = item.price_cents % splitCount
-      const splitItems: { name: string; price_cents: number }[] = []
+      const splitItems: { name: string; price_cents: number; claimed_by: string | null }[] = []
 
       for (let j = 0; j < splitCount; j++) {
         splitItems.push({
           name: item.name,
           price_cents: basePrice + (j === 0 ? remainder : 0),
+          claimed_by: null,
         })
       }
 
