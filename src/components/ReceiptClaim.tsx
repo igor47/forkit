@@ -70,36 +70,40 @@ export const ReceiptClaim = ({ receipt, items, claimerName }: ReceiptClaimProps)
           </div>
         </div>
 
-        {hasName && myItems.length > 0 && (
-          <div class="card mb-3">
+        {hasName && (
+          <div class="card mb-3 border-primary" id="your-share">
             <div class="card-body">
               <h5 class="card-title">{claimerName}'s Share</h5>
-              <table class="table table-sm mb-0">
-                <tbody>
-                  <tr>
-                    <td>Items subtotal</td>
-                    <td class="text-end">{formatDollars(myItemsTotal)}</td>
-                  </tr>
-                  {myTax != null && (
+              {myItems.length > 0 ? (
+                <table class="table table-sm mb-0">
+                  <tbody>
                     <tr>
-                      <td>Tax portion</td>
-                      <td class="text-end">{formatDollars(myTax)}</td>
+                      <td>Items subtotal</td>
+                      <td class="text-end">{formatDollars(myItemsTotal)}</td>
                     </tr>
-                  )}
-                  {myGratuity != null && (
-                    <tr>
-                      <td>Tip portion</td>
-                      <td class="text-end">{formatDollars(myGratuity)}</td>
+                    {myTax != null && (
+                      <tr>
+                        <td>Tax portion</td>
+                        <td class="text-end">{formatDollars(myTax)}</td>
+                      </tr>
+                    )}
+                    {myGratuity != null && (
+                      <tr>
+                        <td>Tip portion</td>
+                        <td class="text-end">{formatDollars(myGratuity)}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr class="fw-bold">
+                      <td>Your total</td>
+                      <td class="text-end">{formatDollars(myTotal)}</td>
                     </tr>
-                  )}
-                </tbody>
-                <tfoot>
-                  <tr class="fw-bold">
-                    <td>Your total</td>
-                    <td class="text-end">{formatDollars(myTotal)}</td>
-                  </tr>
-                </tfoot>
-              </table>
+                  </tfoot>
+                </table>
+              ) : (
+                <p class="text-muted mb-0">Check off your items below to see your share.</p>
+              )}
             </div>
           </div>
         )}
@@ -126,7 +130,7 @@ export const ReceiptClaim = ({ receipt, items, claimerName }: ReceiptClaimProps)
                         class="form-check-input"
                         name={`item-${item.id}`}
                         value="on"
-                        checked={claimedByMe}
+                        checked={claimedByMe || claimedByOther}
                         disabled={!hasName || claimedByOther}
                       />
                     </td>
@@ -174,6 +178,19 @@ export const ReceiptClaim = ({ receipt, items, claimerName }: ReceiptClaimProps)
           </table>
         )}
       </form>
+
+      {hasName && myItems.length > 0 && (
+        <div class="card border-primary mt-3">
+          <div class="card-body py-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold">
+              {claimerName} owes {formatDollars(myTotal)}
+            </span>
+            <a href="#your-share" class="btn btn-sm btn-outline-primary">
+              See breakdown
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

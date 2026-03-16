@@ -134,7 +134,7 @@ receiptsRoutes.post("/receipts/:id/claim", async (c) => {
 
   // Push name into URL so refresh preserves state
   const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
-  c.header("HX-Push-Url", `/receipts/${receipt.id}${nameParam}`)
+  c.header("HX-Replace-Url", `/receipts/${receipt.id}${nameParam}`)
 
   return c.html(<ReceiptClaim receipt={receipt} items={updatedItems} claimerName={claimerName} />)
 })
