@@ -7,6 +7,8 @@ export const config = {
   port: parseInt(process.env.PORT || "3000", 10),
   sqlitePath: process.env.SQLITE_PATH || "./data/db/forkit.db",
   uploadsPath: process.env.UPLOADS_PATH || "./data/uploads",
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+  aiModelName: process.env.AI_MODEL_NAME || "claude-sonnet-4-20250514",
   cookieSecret: process.env.COOKIE_SECRET || "your-secret-key-should-be-in-env",
   nodeEnv: process.env.NODE_ENV || "development",
   isProd: process.env.NODE_ENV === "production",

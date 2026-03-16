@@ -19,6 +19,8 @@ export const UploadForm = ({ error }: UploadFormProps) => {
         hx-encoding="multipart/form-data"
         hx-target="#upload-form"
         hx-swap="outerHTML"
+        hx-disabled-elt="#upload-btn"
+        hx-indicator="#upload-spinner"
       >
         <div class="mb-3">
           <label for="photo" class="form-label">
@@ -33,7 +35,8 @@ export const UploadForm = ({ error }: UploadFormProps) => {
             required
           />
         </div>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="upload-btn">
+          <span id="upload-spinner" class="htmx-indicator spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
           Upload
         </button>
       </form>

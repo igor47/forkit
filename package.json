@@ -17,6 +17,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "clsx": "latest",
     "hono": "latest",
     "htmx.org": "latest",

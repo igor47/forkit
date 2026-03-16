@@ -2,8 +2,10 @@ import { join } from "node:path"
 import { ReceiptView } from "@src/components/ReceiptView"
 import { UploadForm } from "@src/components/UploadForm"
 import { config } from "@src/config"
-import { createReceipt, getReceipt } from "@src/db/receipts"
+import { getReceiptItems } from "@src/db/receipt_items"
+import { createReceipt, getReceipt, markReceiptProcessed } from "@src/db/receipts"
 import { ulid } from "@src/lib/ids"
+import { logger } from "@src/lib/logger"
 import { Hono } from "hono"
 import { getMimeType } from "hono/utils/mime"
 
@@ -42,6 +44,32 @@ receiptsRoutes.post("/receipts/upload", async (c) => {
   await Bun.write(filepath, photo)
   createReceipt(id, filename)
 
+  // Parse receipt via AI
+  if (!config.anthropicApiKey) {
+    markReceiptProcessed(id, { error: "ANTHROPIC_API_KEY is not configured" })
+  } else {
+    try {
+      // Dynamic import to avoid loading the SDK when not configured
+      const { parseReceipt } = await import("@src/lib/parse-receipt")
+      const result = await parseReceipt(filepath)
+
+      if (result.error) {
+        markReceiptProcessed(id, { error: result.error })
+      } else {
+        const { createReceiptItems } = await import("@src/db/receipt_items")
+        createReceiptItems(id, result.items)
+        markReceiptProcessed(id, {
+          total_cents: result.total_cents,
+          tax_cents: result.tax_cents,
+          gratuity_cents: result.gratuity_cents,
+        })
+      }
+    } catch (e) {
+      logger.error("Receipt parsing failed", e as Error, { receiptId: id })
+      markReceiptProcessed(id, { error: "Receipt parsing failed unexpectedly" })
+    }
+  }
+
   c.header("HX-Redirect", `/receipts/${id}`)
   return c.body(null, 204)
 })
@@ -52,9 +80,11 @@ receiptsRoutes.get("/receipts/:id", (c) => {
     return c.text("Receipt not found", 404)
   }
 
+  const items = getReceiptItems(receipt.id)
+
   return c.render(
     <div class="container mt-4">
-      <ReceiptView receipt={receipt} />
+      <ReceiptView receipt={receipt} items={items} />
     </div>,
     { title: "Receipt" }
   )
