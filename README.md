@@ -53,6 +53,22 @@ volumes:
 | `AI_MODEL_NAME` | `claude-sonnet-4-20250514` | Claude model to use |
 | `SQLITE_PATH` | `./data/db/forkit.db` | SQLite database file path |
 | `UPLOADS_PATH` | `./data/uploads` | Uploaded receipt photos directory |
+| `OIDC_ISSUER_URL` | *(none)* | OIDC provider issuer URL (e.g. `https://accounts.google.com`) |
+| `OIDC_CLIENT_ID` | *(none)* | OIDC client ID from your provider |
+| `OIDC_CLIENT_SECRET` | *(none)* | OIDC client secret from your provider |
+| `COOKIE_SECRET` | *(insecure default)* | Secret for signing session cookies — set this in production |
+
+### Authentication (optional)
+
+By default, anyone can upload receipts. To require login, configure an OIDC provider (Google, Keycloak, Authentik, Auth0, etc.):
+
+1. Register a new application with your OIDC provider
+2. Set the redirect URI to `https://your-domain.com/auth/callback`
+3. Set `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, and `OIDC_CLIENT_SECRET`
+
+When configured, uploading receipts requires authentication. Viewing, editing, and claiming receipts remains public — anyone with the receipt link can participate.
+
+The issuer URL is the provider's base URL. The app automatically discovers endpoints via `/.well-known/openid-configuration`.
 
 ### Data persistence
 

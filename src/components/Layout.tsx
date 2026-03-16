@@ -1,11 +1,14 @@
+import type { AuthUser } from "@src/middleware/auth"
 import type { Child } from "hono/jsx"
 
 export interface LayoutProps {
   children?: Child[] | Child
   title?: string
+  user?: AuthUser | null
+  oidcEnabled?: boolean
 }
 
-export const Layout = ({ children, title = "Forkit" }: LayoutProps) => {
+export const Layout = ({ children, title = "Forkit", user, oidcEnabled = false }: LayoutProps) => {
   return (
     <html lang="en">
       <head>
@@ -49,6 +52,22 @@ export const Layout = ({ children, title = "Forkit" }: LayoutProps) => {
               />
               Forkit
             </a>
+            <div class="d-flex align-items-center gap-2">
+              {user ? (
+                <>
+                  <span class="navbar-text">{user.name}</span>
+                  <a href="/auth/logout" class="btn btn-sm btn-outline-secondary">
+                    Sign out
+                  </a>
+                </>
+              ) : (
+                oidcEnabled && (
+                  <a href="/auth/login" class="btn btn-sm btn-outline-primary">
+                    Sign in
+                  </a>
+                )
+              )}
+            </div>
           </div>
         </nav>
 

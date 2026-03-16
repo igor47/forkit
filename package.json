@@ -22,6 +22,7 @@
     "hono": "latest",
     "htmx.org": "latest",
     "idiomorph": "latest",
+    "openid-client": "^6.8.2",
     "ulid": "latest",
     "zod": "latest"
   }

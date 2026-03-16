@@ -1,9 +1,11 @@
 import { Hono } from "hono"
 import { jsxRenderer } from "hono/jsx-renderer"
 import { Layout } from "./components/Layout"
+import { isOidcEnabled } from "./config"
 import { logger } from "./lib/logger"
 import { applyMiddleware } from "./middleware"
 import { cachingServeStatic } from "./middleware/cachingServeStatic"
+import { authRoutes } from "./routes/auth"
 import { healthRoutes } from "./routes/health"
 import { indexRoutes } from "./routes/index"
 import { receiptsRoutes } from "./routes/receipts"
@@ -26,8 +28,9 @@ export function createApp() {
 
   // JSX renderer — use the layout for all routes
   app.use(
-    jsxRenderer((props) => {
-      return Layout({ ...props })
+    jsxRenderer((props, c) => {
+      const user = c.get("user")
+      return Layout({ ...props, user, oidcEnabled: isOidcEnabled() })
     })
   )
 
@@ -39,6 +42,7 @@ export function createApp() {
   app.use("/favicon.ico", cachingServeStatic({ path: "./static/favicon.ico" }))
 
   // Routes
+  app.route("/", authRoutes)
   app.route("/", indexRoutes)
   app.route("/", receiptsRoutes)
 

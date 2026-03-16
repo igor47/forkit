@@ -18,6 +18,7 @@ import {
 } from "@src/db/receipts"
 import { ulid } from "@src/lib/ids"
 import { logger } from "@src/lib/logger"
+import { requireAuth } from "@src/middleware/auth"
 import { Hono } from "hono"
 import { getMimeType } from "hono/utils/mime"
 
@@ -36,7 +37,7 @@ function extFromMime(mime: string): string {
   return map[mime] ?? "jpg"
 }
 
-receiptsRoutes.post("/receipts/upload", async (c) => {
+receiptsRoutes.post("/receipts/upload", requireAuth, async (c) => {
   const formData = await c.req.formData()
   const photo = formData.get("photo")
 
