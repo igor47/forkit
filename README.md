@@ -5,10 +5,11 @@ A self-hosted receipt splitting service. Upload a photo of a restaurant receipt,
 ## How it works
 
 1. **Upload** a photo of your restaurant receipt
-2. **AI parses** the receipt into line items, tax, and total
+2. **AI parses** the receipt into line items, tax, total, and restaurant name
 3. **Edit** if needed -- fix item names/prices, add gratuity, split bundled items (e.g. "2 Green Salad")
-4. **Claim** -- each person enters their name and checks off what they ordered
-5. **See your share** -- items subtotal + proportional tax + proportional tip = what you owe
+4. **Claim** -- enter your name and check off what you ordered
+5. **Share** -- hit the Share button to copy the link so everyone can claim from their own phone
+6. **See your share** -- items subtotal + proportional tax + proportional tip = what you owe
 
 ## Self-hosting
 

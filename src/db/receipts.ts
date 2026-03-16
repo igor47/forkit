@@ -3,6 +3,7 @@ import { getDb } from "../db"
 export interface Receipt {
   id: string
   filename: string
+  restaurant_name: string | null
   processed_at: string | null
   processing_error: string | null
   total_cents: number | null
@@ -30,6 +31,7 @@ export function listReceipts(): Receipt[] {
 
 export interface ProcessedReceiptData {
   error?: string
+  restaurant_name?: string | null
   total_cents?: number | null
   tax_cents?: number | null
   gratuity_cents?: number | null
@@ -54,6 +56,7 @@ export function markReceiptProcessed(id: string, data: ProcessedReceiptData = {}
     `UPDATE receipts
      SET processed_at = datetime('now'),
          processing_error = ?,
+         restaurant_name = ?,
          total_cents = ?,
          tax_cents = ?,
          gratuity_cents = ?,
@@ -61,6 +64,7 @@ export function markReceiptProcessed(id: string, data: ProcessedReceiptData = {}
      WHERE id = ?`,
     [
       data.error ?? null,
+      data.restaurant_name ?? null,
       data.total_cents ?? null,
       data.tax_cents ?? null,
       data.gratuity_cents ?? null,

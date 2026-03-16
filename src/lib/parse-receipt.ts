@@ -9,6 +9,7 @@ const ReceiptItemSchema = z.object({
 })
 
 const ParseResultSchema = z.object({
+  restaurant_name: z.string().nullable(),
   items: z.array(ReceiptItemSchema),
   total_cents: z.number().int().nullable(),
   tax_cents: z.number().int().nullable(),
@@ -24,6 +25,7 @@ Your job is to extract the itemized list of items and their prices, plus the tot
 
 Respond with ONLY a JSON object in this exact format:
 {
+  "restaurant_name": "Restaurant Name",
   "items": [{ "name": "Item name", "price_cents": 1299 }],
   "total_cents": 5432,
   "tax_cents": 434,
@@ -32,6 +34,7 @@ Respond with ONLY a JSON object in this exact format:
 }
 
 Rules:
+- restaurant_name is the name of the restaurant (null if not visible on the receipt)
 - All prices must be in cents (e.g. $12.99 = 1299)
 - Include every line item on the receipt
 - total_cents is the receipt total (including tax and gratuity)
@@ -82,6 +85,7 @@ export async function parseReceipt(filepath: string): Promise<ParseResult> {
   const textBlock = response.content.find((b) => b.type === "text")
   if (!textBlock || textBlock.type !== "text") {
     return {
+      restaurant_name: null,
       items: [],
       total_cents: null,
       tax_cents: null,
@@ -101,6 +105,7 @@ export async function parseReceipt(filepath: string): Promise<ParseResult> {
   } catch (e) {
     logger.error("Failed to parse AI response", e as Error, { raw: textBlock.text })
     return {
+      restaurant_name: null,
       items: [],
       total_cents: null,
       tax_cents: null,

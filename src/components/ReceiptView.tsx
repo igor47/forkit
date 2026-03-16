@@ -13,7 +13,17 @@ export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) =
 
   return (
     <div>
-      <h2>Receipt</h2>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h2 class="mb-0">{receipt.restaurant_name || "Receipt"}</h2>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-secondary"
+          onclick="navigator.clipboard.writeText(window.location.href).then(() => { const el = this; el.innerHTML = '<i class=\'bi bi-check\'></i> Copied'; setTimeout(() => { el.innerHTML = '<i class=\'bi bi-link-45deg\'></i> Share'; }, 1500) })"
+          title="Copy link to share with your group"
+        >
+          <i class="bi bi-link-45deg"></i> Share
+        </button>
+      </div>
       <p class="text-muted">Uploaded {receipt.created_at}</p>
 
       <div class="row g-4">

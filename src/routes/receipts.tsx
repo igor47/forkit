@@ -66,11 +66,12 @@ receiptsRoutes.post("/receipts/upload", async (c) => {
       const result = await parseReceipt(filepath)
 
       if (result.error) {
-        markReceiptProcessed(id, { error: result.error })
+        markReceiptProcessed(id, { error: result.error, restaurant_name: result.restaurant_name })
       } else {
         const { createReceiptItems } = await import("@src/db/receipt_items")
         createReceiptItems(id, result.items)
         markReceiptProcessed(id, {
+          restaurant_name: result.restaurant_name,
           total_cents: result.total_cents,
           tax_cents: result.tax_cents,
           gratuity_cents: result.gratuity_cents,
@@ -99,7 +100,7 @@ receiptsRoutes.get("/receipts/:id", (c) => {
     <div class="container mt-4">
       <ReceiptView receipt={receipt} items={items} claimerName={claimerName} />
     </div>,
-    { title: "Receipt" }
+    { title: receipt.restaurant_name || "Receipt" }
   )
 })
 
