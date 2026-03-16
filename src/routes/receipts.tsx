@@ -145,7 +145,8 @@ receiptsRoutes.get("/receipts/:id/edit", (c) => {
   }
 
   const items = getReceiptItems(receipt.id)
-  return c.html(<ReceiptEdit receipt={receipt} items={items} />)
+  const claimerName = c.req.query("name") ?? ""
+  return c.html(<ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />)
 })
 
 receiptsRoutes.get("/receipts/:id/claim-form", (c) => {
@@ -175,6 +176,7 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
   const formData = await c.req.formData()
   const action = formData.get("action") as string | null
   const itemCount = parseInt((formData.get("item_count") as string) || "0", 10)
+  const claimerName = (formData.get("claimer_name") as string) ?? ""
 
   // Collect current form items
   const removeIndex =
@@ -189,9 +191,12 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
     }
   }
 
-  if (action === "add_item" || action === "remove_item") {
-    // Re-render form with updated item list
-    const pseudoItems = formItems.map((item, i) => ({
+  // Helper to build re-render data
+  const buildEditRerender = (
+    editItems: { name: string; price_cents: number }[],
+    opts: { extraRows?: number; splitIndex?: number | null } = {}
+  ) => {
+    const pseudoItems = editItems.map((item, i) => ({
       id: `form-${i}`,
       receipt_id: receipt.id,
       name: item.name,
@@ -199,16 +204,63 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
       claimed_by: null,
       created_at: "",
     }))
-
-    // Preserve totals from form
     const editReceipt = {
       ...receipt,
       tax_cents: dollarsToCents((formData.get("tax") as string) ?? ""),
       gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
     }
+    return c.html(
+      <ReceiptEdit
+        receipt={editReceipt}
+        items={pseudoItems}
+        extraRows={opts.extraRows ?? 0}
+        splitIndex={opts.splitIndex ?? null}
+        claimerName={claimerName}
+      />
+    )
+  }
 
-    const extraRows = action === "add_item" ? 1 : 0
-    return c.html(<ReceiptEdit receipt={editReceipt} items={pseudoItems} extraRows={extraRows} />)
+  if (action === "add_item" || action === "remove_item") {
+    return buildEditRerender(formItems, {
+      extraRows: action === "add_item" ? 1 : 0,
+    })
+  }
+
+  if (action === "prompt_split") {
+    const splitIdx = parseInt((formData.get("split_index") as string) || "-1", 10)
+    return buildEditRerender(formItems, { splitIndex: splitIdx })
+  }
+
+  if (action === "cancel_split") {
+    return buildEditRerender(formItems)
+  }
+
+  if (action === "split_item") {
+    const splitIdx = parseInt((formData.get("split_index") as string) || "-1", 10)
+    const splitCount = Math.max(2, parseInt((formData.get("split_count") as string) || "2", 10))
+    const item = formItems[splitIdx]
+
+    if (item) {
+      const basePrice = Math.floor(item.price_cents / splitCount)
+      const remainder = item.price_cents % splitCount
+      const splitItems: { name: string; price_cents: number }[] = []
+
+      for (let j = 0; j < splitCount; j++) {
+        splitItems.push({
+          name: item.name,
+          price_cents: basePrice + (j === 0 ? remainder : 0),
+        })
+      }
+
+      const newItems = [
+        ...formItems.slice(0, splitIdx),
+        ...splitItems,
+        ...formItems.slice(splitIdx + 1),
+      ]
+      return buildEditRerender(newItems)
+    }
+
+    return buildEditRerender(formItems)
   }
 
   // Save: delete old items and re-insert
@@ -227,7 +279,9 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
   // Return to claim mode
   const updatedReceipt = getReceipt(receipt.id)!
   const updatedItems = getReceiptItems(receipt.id)
-  return c.html(<ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName="" />)
+  return c.html(
+    <ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName={claimerName} />
+  )
 })
 
 receiptsRoutes.get("/uploads/:filename", async (c) => {

@@ -31,7 +31,7 @@ export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) =
               <button
                 type="button"
                 class="btn btn-sm btn-outline-secondary"
-                hx-get={`/receipts/${receipt.id}/edit`}
+                hx-get={`/receipts/${receipt.id}/edit${claimerName ? `?name=${encodeURIComponent(claimerName)}` : ""}`}
                 hx-target="#receipt-content"
                 hx-swap="innerHTML"
               >
