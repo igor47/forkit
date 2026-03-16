@@ -1,0 +1,49 @@
+[tools]
+bun = "latest"
+jq = "latest"
+
+[env]
+PORT = "3000"
+
+[tasks.install]
+run = "bun install"
+description = "Install dependencies"
+
+[tasks."app:dev"]
+run = "bun run --watch main.ts"
+description = "Start development server with hot reload"
+
+[tasks."app:prod"]
+run = "NODE_ENV=production bun run main.ts"
+description = "Start production server"
+
+[tasks."db:migrate"]
+run = "bun src/db/migrate.ts"
+description = "Run database migrations"
+
+[tasks.check]
+run = """
+  echo "Running Biome checks..."
+  bun biome check src/
+  echo "Running TypeScript checks..."
+  bun tsc --noEmit
+  echo "All checks passed."
+"""
+description = "Check code formatting, linting, and types"
+
+[tasks.check-fix]
+run = """
+  echo "Running Biome fixes..."
+  bun biome check --write src/
+  echo "Running TypeScript checks..."
+  bun tsc --noEmit
+  echo "All checks passed."
+"""
+description = "Auto-fix formatting and linting issues, then check types"
+
+[tasks.test]
+run = """
+  export NODE_ENV="test"
+  bun test "$@"
+"""
+description = "Run tests (pass through arguments to bun test)"
