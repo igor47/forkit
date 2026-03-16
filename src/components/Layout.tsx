@@ -13,6 +13,12 @@ export const Layout = ({ children, title = "Forkit" }: LayoutProps) => {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+        {/* Favicon */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png" />
+        <link rel="manifest" href="/static/site.webmanifest" />
+
         {/* Bootstrap */}
         <link
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -33,7 +39,14 @@ export const Layout = ({ children, title = "Forkit" }: LayoutProps) => {
       <body data-bs-theme="dark">
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
           <div class="container-fluid">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+              <img
+                src="/static/favicon-32x32.png"
+                alt=""
+                width="24"
+                height="24"
+                class="rounded-circle bg-light p-1"
+              />
               Forkit
             </a>
           </div>
