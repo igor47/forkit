@@ -1,16 +1,14 @@
 import type { ReceiptItem } from "@src/db/receipt_items"
 import type { Receipt } from "@src/db/receipts"
+import { ReceiptClaim } from "./ReceiptClaim"
 
 export interface ReceiptViewProps {
   receipt: Receipt
   items: ReceiptItem[]
+  claimerName: string
 }
 
-function formatDollars(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`
-}
-
-export const ReceiptView = ({ receipt, items }: ReceiptViewProps) => {
+export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) => {
   const uploadUrl = `/uploads/${receipt.filename}`
 
   return (
@@ -18,8 +16,8 @@ export const ReceiptView = ({ receipt, items }: ReceiptViewProps) => {
       <h2>Receipt</h2>
       <p class="text-muted">Uploaded {receipt.created_at}</p>
 
-      <div class="row">
-        <div class="col-md-3">
+      <div class="row g-4">
+        <div class="col-md-4 col-lg-3 text-center">
           <a href={uploadUrl} target="_blank" rel="noopener noreferrer">
             <img
               src={uploadUrl}
@@ -30,7 +28,7 @@ export const ReceiptView = ({ receipt, items }: ReceiptViewProps) => {
           </a>
         </div>
 
-        <div class="col-md-9">
+        <div class="col-md-8 col-lg-9">
           {receipt.processing_error && (
             <div class="alert alert-danger" role="alert">
               <strong>Error parsing receipt:</strong> {receipt.processing_error}
@@ -47,42 +45,7 @@ export const ReceiptView = ({ receipt, items }: ReceiptViewProps) => {
           )}
 
           {items.length > 0 && (
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th class="text-end">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.name}</td>
-                    <td class="text-end">{formatDollars(item.price_cents)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                {receipt.tax_cents != null && (
-                  <tr>
-                    <td>Tax</td>
-                    <td class="text-end">{formatDollars(receipt.tax_cents)}</td>
-                  </tr>
-                )}
-                {receipt.gratuity_cents != null && (
-                  <tr>
-                    <td>Gratuity</td>
-                    <td class="text-end">{formatDollars(receipt.gratuity_cents)}</td>
-                  </tr>
-                )}
-                {receipt.total_cents != null && (
-                  <tr class="fw-bold">
-                    <td>Total</td>
-                    <td class="text-end">{formatDollars(receipt.total_cents)}</td>
-                  </tr>
-                )}
-              </tfoot>
-            </table>
+            <ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />
           )}
         </div>
       </div>

@@ -36,7 +36,12 @@ export const UploadForm = ({ error }: UploadFormProps) => {
           />
         </div>
         <button type="submit" class="btn btn-primary" id="upload-btn">
-          <span id="upload-spinner" class="htmx-indicator spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <span
+            id="upload-spinner"
+            class="htmx-indicator spinner-border spinner-border-sm me-1"
+            role="status"
+            aria-hidden="true"
+          ></span>
           Upload
         </button>
       </form>

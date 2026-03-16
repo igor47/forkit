@@ -6,6 +6,7 @@ export interface ReceiptItem {
   receipt_id: string
   name: string
   price_cents: number
+  claimed_by: string | null
   created_at: string
 }
 
@@ -30,4 +31,9 @@ export function getReceiptItems(receiptId: string): ReceiptItem[] {
   return db
     .query("SELECT * FROM receipt_items WHERE receipt_id = ? ORDER BY created_at")
     .all(receiptId) as ReceiptItem[]
+}
+
+export function claimReceiptItem(itemId: string, claimedBy: string | null): void {
+  const db = getDb()
+  db.run("UPDATE receipt_items SET claimed_by = ? WHERE id = ?", [claimedBy, itemId])
 }

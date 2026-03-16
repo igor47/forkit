@@ -1,8 +1,9 @@
 import { join } from "node:path"
+import { ReceiptClaim } from "@src/components/ReceiptClaim"
 import { ReceiptView } from "@src/components/ReceiptView"
 import { UploadForm } from "@src/components/UploadForm"
 import { config } from "@src/config"
-import { getReceiptItems } from "@src/db/receipt_items"
+import { claimReceiptItem, getReceiptItems } from "@src/db/receipt_items"
 import { createReceipt, getReceipt, markReceiptProcessed } from "@src/db/receipts"
 import { ulid } from "@src/lib/ids"
 import { logger } from "@src/lib/logger"
@@ -81,13 +82,49 @@ receiptsRoutes.get("/receipts/:id", (c) => {
   }
 
   const items = getReceiptItems(receipt.id)
+  const claimerName = c.req.query("name") ?? ""
 
   return c.render(
     <div class="container mt-4">
-      <ReceiptView receipt={receipt} items={items} />
+      <ReceiptView receipt={receipt} items={items} claimerName={claimerName} />
     </div>,
     { title: "Receipt" }
   )
+})
+
+receiptsRoutes.post("/receipts/:id/claim", async (c) => {
+  const receipt = getReceipt(c.req.param("id"))
+  if (!receipt) {
+    return c.text("Receipt not found", 404)
+  }
+
+  const formData = await c.req.formData()
+  const claimerName = (formData.get("claimer_name") as string) ?? ""
+  const previousName = (formData.get("previous_name") as string) ?? ""
+  const nameChanged = claimerName.trim() !== previousName.trim()
+  const items = getReceiptItems(receipt.id)
+
+  // Only process checkbox state when the name hasn't changed
+  // When name changes, it's a new person — don't re-claim previous person's items
+  if (claimerName.trim() && !nameChanged) {
+    for (const item of items) {
+      const checked = formData.get(`item-${item.id}`) === "on"
+      if (checked && item.claimed_by !== claimerName) {
+        claimReceiptItem(item.id, claimerName)
+      } else if (!checked && item.claimed_by === claimerName) {
+        claimReceiptItem(item.id, null)
+      }
+    }
+  }
+
+  // Re-fetch items after updates
+  const updatedItems = getReceiptItems(receipt.id)
+
+  // Push name into URL so refresh preserves state
+  const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
+  c.header("HX-Push-Url", `/receipts/${receipt.id}${nameParam}`)
+
+  return c.html(<ReceiptClaim receipt={receipt} items={updatedItems} claimerName={claimerName} />)
 })
 
 receiptsRoutes.get("/uploads/:filename", async (c) => {
