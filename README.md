@@ -1,6 +1,8 @@
 # Forkit
 
-A self-hosted receipt splitting service. Upload a photo of a restaurant receipt, and Forkit uses Claude to extract the itemized list. Then pass the phone around the table so everyone can claim their items and see their share of the bill, including proportional tax and tip.
+A self-hosted receipt splitting service.
+Upload a photo of a restaurant receipt, and Forkit uses Claude to extract the itemized list.
+Then pass the phone around the table (or share the link!) so everyone can claim their items and see their share of the bill, including proportional tax and tip.
 
 ## How it works
 

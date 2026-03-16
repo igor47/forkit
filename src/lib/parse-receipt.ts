@@ -37,6 +37,7 @@ Rules:
 - restaurant_name is the name of the restaurant (null if not visible on the receipt)
 - All prices must be in cents (e.g. $12.99 = 1299)
 - Include every line item on the receipt
+- If a line item has a quantity prefix (e.g. "2 Green Salad"), preserve it in the name (e.g. "2 Green Salad"), and set price_cents to the total price for that line
 - total_cents is the receipt total (including tax and gratuity)
 - tax_cents is the sales tax amount
 - gratuity_cents is the tip/gratuity if printed on the receipt (null if not present)

@@ -407,6 +407,99 @@ describe("receipts", () => {
     })
   })
 
+  describe("split items", () => {
+    test("prompt_split shows split UI for the correct row", async () => {
+      const { receipt } = createTestReceiptWithItems(
+        [{ name: "2 Green Salad", price_cents: 2400 }],
+        { total_cents: 2400 }
+      )
+
+      const formData = new FormData()
+      formData.append("name-0", "2 Green Salad")
+      formData.append("price-0", "24.00")
+      formData.append("item_count", "1")
+      formData.append("action", "prompt_split")
+      formData.append("split_index", "0")
+      formData.append("tax", "")
+      formData.append("gratuity", "")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      expect(response.status).toBe(200)
+      const doc = await parseHtml(response)
+
+      // Should show a split_count input
+      const splitInput = doc.querySelector("input[name='split_count']") as HTMLInputElement
+      expect(splitInput).not.toBeNull()
+      expect(splitInput.value).toBe("2")
+    })
+
+    test("split_item divides evenly into N rows", async () => {
+      const { receipt } = createTestReceiptWithItems(
+        [{ name: "3 Green Salad", price_cents: 2100 }],
+        { total_cents: 2100 }
+      )
+
+      const formData = new FormData()
+      formData.append("name-0", "3 Green Salad")
+      formData.append("price-0", "21.00")
+      formData.append("item_count", "1")
+      formData.append("action", "split_item")
+      formData.append("split_index", "0")
+      formData.append("split_count", "3")
+      formData.append("tax", "")
+      formData.append("gratuity", "")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      expect(response.status).toBe(200)
+      const doc = await parseHtml(response)
+
+      const nameInputs = doc.querySelectorAll("input[name^='name-']")
+      expect(nameInputs.length).toBe(3)
+
+      const priceInputs = doc.querySelectorAll("input[name^='price-']")
+      expect((priceInputs[0] as HTMLInputElement).value).toBe("7.00")
+      expect((priceInputs[1] as HTMLInputElement).value).toBe("7.00")
+      expect((priceInputs[2] as HTMLInputElement).value).toBe("7.00")
+    })
+
+    test("split_item puts remainder cents on first row", async () => {
+      const { receipt } = createTestReceiptWithItems([{ name: "Appetizer", price_cents: 2101 }], {
+        total_cents: 2101,
+      })
+
+      const formData = new FormData()
+      formData.append("name-0", "Appetizer")
+      formData.append("price-0", "21.01")
+      formData.append("item_count", "1")
+      formData.append("action", "split_item")
+      formData.append("split_index", "0")
+      formData.append("split_count", "3")
+      formData.append("tax", "")
+      formData.append("gratuity", "")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      expect(response.status).toBe(200)
+      const doc = await parseHtml(response)
+
+      const priceInputs = doc.querySelectorAll("input[name^='price-']")
+      expect((priceInputs[0] as HTMLInputElement).value).toBe("7.01")
+      expect((priceInputs[1] as HTMLInputElement).value).toBe("7.00")
+      expect((priceInputs[2] as HTMLInputElement).value).toBe("7.00")
+    })
+  })
+
   describe("GET /uploads/:filename", () => {
     test("serves the uploaded file", async () => {
       const receipt = createTestReceipt()
