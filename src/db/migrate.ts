@@ -1,3 +1,4 @@
+import type { Database } from "bun:sqlite"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { getDb } from "../db"
@@ -5,13 +6,20 @@ import { getDb } from "../db"
 const MIGRATIONS_DIR = join(import.meta.dir, "..", "migrations")
 
 /**
- * Simple migration runner for SQLite.
- * Reads .sql files from src/migrations/ in sorted order.
- * Tracks applied migrations in a _migrations table.
+ * Run migrations on a specific database instance (used by tests).
  */
-export function runMigrations(): void {
-  const db = getDb()
+export function runMigrationsWithDb(db: Database) {
+  _runMigrations(db)
+}
 
+/**
+ * Run migrations using the default database singleton.
+ */
+export function runMigrations() {
+  _runMigrations(getDb())
+}
+
+function _runMigrations(db: Database): void {
   // Create migrations tracking table
   db.exec(`
     CREATE TABLE IF NOT EXISTS _migrations (

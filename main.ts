@@ -1,6 +1,8 @@
-import { config } from "./src/config"
 import { createApp } from "./src/app"
+import { config } from "./src/config"
+import { runMigrations } from "./src/db/migrate"
 
+runMigrations()
 const app = createApp()
 const maxAttempts = 10
 

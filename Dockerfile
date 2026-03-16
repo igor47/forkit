@@ -23,7 +23,8 @@ ENV NODE_ENV=production \
 
 EXPOSE 3000
 
-# Data directory for SQLite (mount a volume here)
+# Data directory for SQLite + uploads (mount a volume here)
+RUN mkdir -p /app/data/db /app/data/uploads
 VOLUME ["/app/data"]
 
 CMD ["bun", "run", "main.ts"]

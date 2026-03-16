@@ -5,7 +5,8 @@ const repoRoot = dirname(import.meta.dir)
 export const config = {
   repoRoot,
   port: parseInt(process.env.PORT || "3000", 10),
-  sqlitePath: process.env.SQLITE_PATH || "./data/forkit.db",
+  sqlitePath: process.env.SQLITE_PATH || "./data/db/forkit.db",
+  uploadsPath: process.env.UPLOADS_PATH || "./data/uploads",
   cookieSecret: process.env.COOKIE_SECRET || "your-secret-key-should-be-in-env",
   nodeEnv: process.env.NODE_ENV || "development",
   isProd: process.env.NODE_ENV === "production",

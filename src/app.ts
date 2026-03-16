@@ -6,6 +6,7 @@ import { applyMiddleware } from "./middleware"
 import { cachingServeStatic } from "./middleware/cachingServeStatic"
 import { healthRoutes } from "./routes/health"
 import { indexRoutes } from "./routes/index"
+import { receiptsRoutes } from "./routes/receipts"
 
 // Update typescript to indicate the title prop on the layout
 // see: https://hono.dev/docs/api/context#render-setrenderer
@@ -39,6 +40,7 @@ export function createApp() {
 
   // Routes
   app.route("/", indexRoutes)
+  app.route("/", receiptsRoutes)
 
   // Error handler
   app.onError((err, c) => {

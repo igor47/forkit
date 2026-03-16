@@ -39,6 +39,8 @@ mise.local.toml
 # Finder (MacOS) folder config
 .DS_Store
 
-# data
-data/
+# data (keep directory structure via .keep files)
+data/**
+!data/.keep
+!data/**/.keep
 !src/migrations/*.sql

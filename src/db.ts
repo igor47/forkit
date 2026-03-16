@@ -20,6 +20,13 @@ export function getDb(): Database {
 }
 
 /**
+ * Override the database instance (used by tests to inject in-memory DB).
+ */
+export function setDb(newDb: Database): void {
+  db = newDb
+}
+
+/**
  * Close the database connection (useful for tests or graceful shutdown).
  */
 export function closeDb(): void {
