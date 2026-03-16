@@ -3,7 +3,7 @@ bun = "latest"
 jq = "latest"
 
 [env]
-PORT = "3000"
+PORT = "3001"
 
 [tasks.install]
 run = "bun install"
@@ -16,6 +16,10 @@ description = "Start development server with hot reload"
 [tasks."app:prod"]
 run = "NODE_ENV=production bun run main.ts"
 description = "Start production server"
+
+[tasks."app:container"]
+run = "docker compose up --build"
+description = "Build and run the app in a Docker container"
 
 [tasks."db:migrate"]
 run = "bun src/db/migrate.ts"
