@@ -26,27 +26,42 @@ export const ReceiptView = ({ receipt, items, claimerName }: ReceiptViewProps) =
               style="max-width: 200px; cursor: pointer;"
             />
           </a>
+          {items.length > 0 && (
+            <div class="mt-2">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                hx-get={`/receipts/${receipt.id}/edit`}
+                hx-target="#receipt-content"
+                hx-swap="innerHTML"
+              >
+                Edit Items
+              </button>
+            </div>
+          )}
         </div>
 
         <div class="col-md-8 col-lg-9">
-          {receipt.processing_error && (
-            <div class="alert alert-danger" role="alert">
-              <strong>Error parsing receipt:</strong> {receipt.processing_error}
-              <div class="mt-3">
-                <a href="/" class="btn btn-primary btn-sm">
-                  Try Again
-                </a>
+          <div id="receipt-content">
+            {receipt.processing_error && (
+              <div class="alert alert-danger" role="alert">
+                <strong>Error parsing receipt:</strong> {receipt.processing_error}
+                <div class="mt-3">
+                  <a href="/" class="btn btn-primary btn-sm">
+                    Try Again
+                  </a>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {!receipt.processed_at && !receipt.processing_error && (
-            <p class="text-muted">Not yet processed.</p>
-          )}
+            {!receipt.processed_at && !receipt.processing_error && (
+              <p class="text-muted">Not yet processed.</p>
+            )}
 
-          {items.length > 0 && (
-            <ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />
-          )}
+            {items.length > 0 && (
+              <ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />
+            )}
+          </div>
         </div>
       </div>
     </div>

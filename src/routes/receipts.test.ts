@@ -274,6 +274,139 @@ describe("receipts", () => {
     })
   })
 
+  describe("GET /receipts/:id/edit", () => {
+    test("returns edit form with current items", async () => {
+      const { receipt } = createTestReceiptWithItems(
+        [
+          { name: "Burger", price_cents: 1499 },
+          { name: "Fries", price_cents: 599 },
+        ],
+        { total_cents: 2299, tax_cents: 201, gratuity_cents: 300 }
+      )
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`)
+      expect(response.status).toBe(200)
+      const doc = await parseHtml(response)
+
+      const nameInputs = doc.querySelectorAll("input[name^='name-']")
+      expect(nameInputs.length).toBe(2)
+      expect((nameInputs[0] as HTMLInputElement).value).toBe("Burger")
+
+      const gratuityInput = doc.querySelector("input[name='gratuity']") as HTMLInputElement
+      expect(gratuityInput.value).toBe("3.00")
+    })
+  })
+
+  describe("POST /receipts/:id/edit", () => {
+    test("saves updated items and totals", async () => {
+      const { receipt } = createTestReceiptWithItems([{ name: "Burger", price_cents: 1499 }], {
+        total_cents: 1499,
+      })
+
+      const formData = new FormData()
+      formData.append("name-0", "Cheeseburger")
+      formData.append("price-0", "15.99")
+      formData.append("item_count", "1")
+      formData.append("tax", "1.28")
+      formData.append("gratuity", "3.00")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      expect(response.status).toBe(200)
+
+      // Verify items updated
+      const items = getReceiptItems(receipt.id)
+      expect(items.length).toBe(1)
+      expect(items[0]!.name).toBe("Cheeseburger")
+      expect(items[0]!.price_cents).toBe(1599)
+
+      // Verify tax/gratuity updated, total preserved from LLM
+      const updated = getReceipt(receipt.id)!
+      expect(updated.gratuity_cents).toBe(300)
+      expect(updated.tax_cents).toBe(128)
+      expect(updated.total_cents).toBe(1499) // original LLM total preserved
+    })
+
+    test("removes item via remove_item action", async () => {
+      const { receipt } = createTestReceiptWithItems(
+        [
+          { name: "Burger", price_cents: 1499 },
+          { name: "Fries", price_cents: 599 },
+        ],
+        { total_cents: 2098 }
+      )
+
+      // First remove burger (index 0) — re-renders form without saving
+      const removeForm = new FormData()
+      removeForm.append("name-0", "Burger")
+      removeForm.append("price-0", "14.99")
+      removeForm.append("name-1", "Fries")
+      removeForm.append("price-1", "5.99")
+      removeForm.append("item_count", "2")
+      removeForm.append("action", "remove_item")
+      removeForm.append("remove_index", "0")
+      removeForm.append("tax", "")
+      removeForm.append("gratuity", "")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: removeForm,
+      })
+
+      // Should re-render with only Fries
+      const doc = await parseHtml(response)
+      const nameInputs = doc.querySelectorAll("input[name^='name-']")
+      expect(nameInputs.length).toBe(1)
+      expect((nameInputs[0] as HTMLInputElement).value).toBe("Fries")
+
+      // Now save
+      const saveForm = new FormData()
+      saveForm.append("name-0", "Fries")
+      saveForm.append("price-0", "5.99")
+      saveForm.append("item_count", "1")
+      saveForm.append("tax", "")
+      saveForm.append("gratuity", "")
+
+      await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: saveForm,
+      })
+
+      const items = getReceiptItems(receipt.id)
+      expect(items.length).toBe(1)
+      expect(items[0]!.name).toBe("Fries")
+    })
+
+    test("add_item re-renders form with extra row", async () => {
+      const { receipt } = createTestReceiptWithItems([{ name: "Burger", price_cents: 1499 }], {
+        total_cents: 1499,
+      })
+
+      const formData = new FormData()
+      formData.append("name-0", "Burger")
+      formData.append("price-0", "14.99")
+      formData.append("item_count", "1")
+      formData.append("action", "add_item")
+      formData.append("tax", "")
+      formData.append("gratuity", "")
+
+      const response = await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      expect(response.status).toBe(200)
+      const doc = await parseHtml(response)
+
+      // Should have 2 rows now (1 existing + 1 new blank)
+      const nameInputs = doc.querySelectorAll("input[name^='name-']")
+      expect(nameInputs.length).toBe(2)
+    })
+  })
+
   describe("GET /uploads/:filename", () => {
     test("serves the uploaded file", async () => {
       const receipt = createTestReceipt()

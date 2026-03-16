@@ -37,3 +37,8 @@ export function claimReceiptItem(itemId: string, claimedBy: string | null): void
   const db = getDb()
   db.run("UPDATE receipt_items SET claimed_by = ? WHERE id = ?", [claimedBy, itemId])
 }
+
+export function deleteReceiptItems(receiptId: string): void {
+  const db = getDb()
+  db.run("DELETE FROM receipt_items WHERE receipt_id = ?", [receiptId])
+}

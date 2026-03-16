@@ -91,7 +91,12 @@ export async function parseReceipt(filepath: string): Promise<ParseResult> {
   }
 
   try {
-    const parsed = JSON.parse(textBlock.text)
+    // Strip markdown fences if the model wraps the JSON
+    let jsonText = textBlock.text.trim()
+    if (jsonText.startsWith("```")) {
+      jsonText = jsonText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "")
+    }
+    const parsed = JSON.parse(jsonText)
     return ParseResultSchema.parse(parsed)
   } catch (e) {
     logger.error("Failed to parse AI response", e as Error, { raw: textBlock.text })

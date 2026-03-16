@@ -1,10 +1,21 @@
 import { join } from "node:path"
 import { ReceiptClaim } from "@src/components/ReceiptClaim"
+import { ReceiptEdit } from "@src/components/ReceiptEdit"
 import { ReceiptView } from "@src/components/ReceiptView"
 import { UploadForm } from "@src/components/UploadForm"
 import { config } from "@src/config"
-import { claimReceiptItem, getReceiptItems } from "@src/db/receipt_items"
-import { createReceipt, getReceipt, markReceiptProcessed } from "@src/db/receipts"
+import {
+  claimReceiptItem,
+  createReceiptItems,
+  deleteReceiptItems,
+  getReceiptItems,
+} from "@src/db/receipt_items"
+import {
+  createReceipt,
+  getReceipt,
+  markReceiptProcessed,
+  updateReceiptTotals,
+} from "@src/db/receipts"
 import { ulid } from "@src/lib/ids"
 import { logger } from "@src/lib/logger"
 import { Hono } from "hono"
@@ -125,6 +136,98 @@ receiptsRoutes.post("/receipts/:id/claim", async (c) => {
   c.header("HX-Push-Url", `/receipts/${receipt.id}${nameParam}`)
 
   return c.html(<ReceiptClaim receipt={receipt} items={updatedItems} claimerName={claimerName} />)
+})
+
+receiptsRoutes.get("/receipts/:id/edit", (c) => {
+  const receipt = getReceipt(c.req.param("id"))
+  if (!receipt) {
+    return c.text("Receipt not found", 404)
+  }
+
+  const items = getReceiptItems(receipt.id)
+  return c.html(<ReceiptEdit receipt={receipt} items={items} />)
+})
+
+receiptsRoutes.get("/receipts/:id/claim-form", (c) => {
+  const receipt = getReceipt(c.req.param("id"))
+  if (!receipt) {
+    return c.text("Receipt not found", 404)
+  }
+
+  const items = getReceiptItems(receipt.id)
+  const claimerName = c.req.query("name") ?? ""
+  return c.html(<ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />)
+})
+
+function dollarsToCents(value: string): number | null {
+  if (!value || value.trim() === "") return null
+  const parsed = Number.parseFloat(value)
+  if (Number.isNaN(parsed)) return null
+  return Math.round(parsed * 100)
+}
+
+receiptsRoutes.post("/receipts/:id/edit", async (c) => {
+  const receipt = getReceipt(c.req.param("id"))
+  if (!receipt) {
+    return c.text("Receipt not found", 404)
+  }
+
+  const formData = await c.req.formData()
+  const action = formData.get("action") as string | null
+  const itemCount = parseInt((formData.get("item_count") as string) || "0", 10)
+
+  // Collect current form items
+  const removeIndex =
+    action === "remove_item" ? parseInt((formData.get("remove_index") as string) || "-1", 10) : -1
+  const formItems: { name: string; price_cents: number }[] = []
+  for (let i = 0; i < itemCount; i++) {
+    if (i === removeIndex) continue
+    const name = (formData.get(`name-${i}`) as string) ?? ""
+    const price = (formData.get(`price-${i}`) as string) ?? ""
+    if (name.trim()) {
+      formItems.push({ name: name.trim(), price_cents: dollarsToCents(price) ?? 0 })
+    }
+  }
+
+  if (action === "add_item" || action === "remove_item") {
+    // Re-render form with updated item list
+    const pseudoItems = formItems.map((item, i) => ({
+      id: `form-${i}`,
+      receipt_id: receipt.id,
+      name: item.name,
+      price_cents: item.price_cents,
+      claimed_by: null,
+      created_at: "",
+    }))
+
+    // Preserve totals from form
+    const editReceipt = {
+      ...receipt,
+      tax_cents: dollarsToCents((formData.get("tax") as string) ?? ""),
+      gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
+    }
+
+    const extraRows = action === "add_item" ? 1 : 0
+    return c.html(<ReceiptEdit receipt={editReceipt} items={pseudoItems} extraRows={extraRows} />)
+  }
+
+  // Save: delete old items and re-insert
+  deleteReceiptItems(receipt.id)
+  if (formItems.length > 0) {
+    createReceiptItems(receipt.id, formItems)
+  }
+
+  // Update tax and gratuity (total is always computed)
+  updateReceiptTotals(receipt.id, {
+    total_cents: receipt.total_cents, // preserve original LLM-extracted total
+    tax_cents: dollarsToCents((formData.get("tax") as string) ?? ""),
+    gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
+  })
+
+  // Return to claim mode
+  const updatedReceipt = getReceipt(receipt.id)!
+  const updatedItems = getReceiptItems(receipt.id)
+  return c.html(<ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName="" />)
 })
 
 receiptsRoutes.get("/uploads/:filename", async (c) => {

@@ -35,6 +35,19 @@ export interface ProcessedReceiptData {
   gratuity_cents?: number | null
 }
 
+export function updateReceiptTotals(
+  id: string,
+  totals: { total_cents: number | null; tax_cents: number | null; gratuity_cents: number | null }
+): void {
+  const db = getDb()
+  db.run(
+    `UPDATE receipts
+     SET total_cents = ?, tax_cents = ?, gratuity_cents = ?, updated_at = datetime('now')
+     WHERE id = ?`,
+    [totals.total_cents, totals.tax_cents, totals.gratuity_cents, id]
+  )
+}
+
 export function markReceiptProcessed(id: string, data: ProcessedReceiptData = {}): void {
   const db = getDb()
   db.run(

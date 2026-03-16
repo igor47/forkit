@@ -156,20 +156,20 @@ export const ReceiptClaim = ({ receipt, items, claimerName }: ReceiptClaimProps)
                   <td></td>
                 </tr>
               )}
-              {receipt.gratuity_cents != null && (
-                <tr>
-                  <td colSpan={2}>Gratuity</td>
-                  <td class="text-end">{formatDollars(receipt.gratuity_cents)}</td>
-                  <td></td>
-                </tr>
-              )}
-              {receipt.total_cents != null && (
-                <tr class="fw-bold">
-                  <td colSpan={2}>Total</td>
-                  <td class="text-end">{formatDollars(receipt.total_cents)}</td>
-                  <td></td>
-                </tr>
-              )}
+              <tr>
+                <td colSpan={2}>Gratuity</td>
+                <td class="text-end">{formatDollars(receipt.gratuity_cents ?? 0)}</td>
+                <td></td>
+              </tr>
+              <tr class="fw-bold">
+                <td colSpan={2}>Total</td>
+                <td class="text-end">
+                  {formatDollars(
+                    allItemsTotal + (receipt.tax_cents ?? 0) + (receipt.gratuity_cents ?? 0)
+                  )}
+                </td>
+                <td></td>
+              </tr>
             </tfoot>
           </table>
         )}
