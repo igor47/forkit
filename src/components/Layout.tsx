@@ -52,7 +52,12 @@ export const Layout = ({ children, title = "Forkit", user, oidcEnabled = false }
               />
               Forkit
             </a>
-            <div class="d-flex align-items-center gap-2">
+            {user && (
+              <a href="/receipts" class="nav-link ms-3">
+                My Receipts
+              </a>
+            )}
+            <div class="d-flex align-items-center gap-2 ms-auto">
               {user ? (
                 <>
                   <span class="navbar-text">{user.name}</span>

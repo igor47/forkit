@@ -4,6 +4,7 @@ export interface Receipt {
   id: string
   filename: string
   restaurant_name: string | null
+  created_by: string | null
   processed_at: string | null
   processing_error: string | null
   total_cents: number | null
@@ -13,10 +14,21 @@ export interface Receipt {
   updated_at: string
 }
 
-export function createReceipt(id: string, filename: string): Receipt {
+export function createReceipt(id: string, filename: string, createdBy?: string | null): Receipt {
   const db = getDb()
-  db.run("INSERT INTO receipts (id, filename) VALUES (?, ?)", [id, filename])
+  db.run("INSERT INTO receipts (id, filename, created_by) VALUES (?, ?, ?)", [
+    id,
+    filename,
+    createdBy ?? null,
+  ])
   return getReceipt(id)!
+}
+
+export function listReceiptsByCreator(sub: string): Receipt[] {
+  const db = getDb()
+  return db
+    .query("SELECT * FROM receipts WHERE created_by = ? ORDER BY created_at DESC")
+    .all(sub) as Receipt[]
 }
 
 export function getReceipt(id: string): Receipt | null {

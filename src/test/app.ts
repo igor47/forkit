@@ -32,6 +32,9 @@ export function useTestApp(): TestContext {
 
     // Override config for tests
     ;(config as any).uploadsPath = ctx.uploadsDir
+    ;(config as any).oidcIssuerUrl = ""
+    ;(config as any).oidcClientId = ""
+    ;(config as any).oidcClientSecret = ""
 
     // Create in-memory database with migrations
     ctx.db = new Database(":memory:")

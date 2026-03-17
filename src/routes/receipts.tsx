@@ -13,6 +13,7 @@ import {
 import {
   createReceipt,
   getReceipt,
+  listReceiptsByCreator,
   markReceiptProcessed,
   updateReceiptTotals,
 } from "@src/db/receipts"
@@ -37,6 +38,37 @@ function extFromMime(mime: string): string {
   return map[mime] ?? "jpg"
 }
 
+receiptsRoutes.get("/receipts", requireAuth, (c) => {
+  const user = c.get("user")
+  if (!user) {
+    return c.redirect("/")
+  }
+
+  const receipts = listReceiptsByCreator(user.sub)
+  return c.render(
+    <div class="container mt-4">
+      <h2>My Receipts</h2>
+      {receipts.length === 0 ? (
+        <p class="text-muted">
+          No receipts yet. <a href="/">Upload one</a> to get started.
+        </p>
+      ) : (
+        <div class="list-group">
+          {receipts.map((r) => (
+            <a key={r.id} href={`/receipts/${r.id}`} class="list-group-item list-group-item-action">
+              <div class="d-flex justify-content-between">
+                <span>{r.restaurant_name || "Receipt"}</span>
+                <small class="text-muted">{r.created_at}</small>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>,
+    { title: "My Receipts" }
+  )
+})
+
 receiptsRoutes.post("/receipts/upload", requireAuth, async (c) => {
   const formData = await c.req.formData()
   const photo = formData.get("photo")
@@ -55,7 +87,7 @@ receiptsRoutes.post("/receipts/upload", requireAuth, async (c) => {
   const filepath = join(config.uploadsPath, filename)
 
   await Bun.write(filepath, photo)
-  createReceipt(id, filename)
+  createReceipt(id, filename, c.get("user")?.sub)
 
   // Parse receipt via AI
   if (!config.anthropicApiKey) {
