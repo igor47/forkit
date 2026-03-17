@@ -1,4 +1,5 @@
 import { join } from "node:path"
+import { ModeToggle } from "@src/components/ModeToggle"
 import { ReceiptClaim } from "@src/components/ReceiptClaim"
 import { ReceiptEdit } from "@src/components/ReceiptEdit"
 import { ReceiptView } from "@src/components/ReceiptView"
@@ -183,7 +184,14 @@ receiptsRoutes.get("/receipts/:id/edit", (c) => {
   const isHtmx = c.req.header("HX-Request") === "true"
 
   if (isHtmx) {
-    return c.html(<ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />)
+    return c.html(
+      <>
+        <ReceiptEdit receipt={receipt} items={items} claimerName={claimerName} />
+        <div id="mode-toggle" hx-swap-oob="true">
+          <ModeToggle receiptId={receipt.id} claimerName={claimerName} editMode />
+        </div>
+      </>
+    )
   }
 
   // Full page render for direct navigation (e.g. after upload redirect)
@@ -205,7 +213,14 @@ receiptsRoutes.get("/receipts/:id/claim-form", (c) => {
   const claimerName = c.req.query("name") ?? ""
   const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
   c.header("HX-Replace-Url", `/receipts/${receipt.id}${nameParam}`)
-  return c.html(<ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />)
+  return c.html(
+    <>
+      <ReceiptClaim receipt={receipt} items={items} claimerName={claimerName} />
+      <div id="mode-toggle" hx-swap-oob="true">
+        <ModeToggle receiptId={receipt.id} claimerName={claimerName} editMode={false} />
+      </div>
+    </>
+  )
 })
 
 function dollarsToCents(value: string): number | null {
@@ -336,7 +351,12 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
   const nameParam = claimerName.trim() ? `?name=${encodeURIComponent(claimerName.trim())}` : ""
   c.header("HX-Replace-Url", `/receipts/${receipt.id}${nameParam}`)
   return c.html(
-    <ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName={claimerName} />
+    <>
+      <ReceiptClaim receipt={updatedReceipt} items={updatedItems} claimerName={claimerName} />
+      <div id="mode-toggle" hx-swap-oob="true">
+        <ModeToggle receiptId={receipt.id} claimerName={claimerName} editMode={false} />
+      </div>
+    </>
   )
 })
 

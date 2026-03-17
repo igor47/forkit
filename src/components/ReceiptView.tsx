@@ -1,5 +1,6 @@
 import type { ReceiptItem } from "@src/db/receipt_items"
 import type { Receipt } from "@src/db/receipts"
+import { ModeToggle } from "./ModeToggle"
 import { ReceiptClaim } from "./ReceiptClaim"
 import { ReceiptEdit } from "./ReceiptEdit"
 
@@ -34,7 +35,7 @@ export const ReceiptView = ({
       <p class="text-muted">Uploaded {receipt.created_at}</p>
 
       <div class="row g-4">
-        <div class="col-md-4 col-lg-3 text-center">
+        <div class="col-md-4 col-lg-3 d-flex flex-column align-items-center">
           <a href={uploadUrl} target="_blank" rel="noopener noreferrer">
             <img
               src={uploadUrl}
@@ -44,18 +45,7 @@ export const ReceiptView = ({
             />
           </a>
           {items.length > 0 && (
-            <div class="mt-2">
-              <button
-                type="button"
-                class="btn btn-sm btn-primary"
-                hx-get={`/receipts/${receipt.id}/edit${claimerName ? `?name=${encodeURIComponent(claimerName)}` : ""}`}
-                hx-target="#receipt-content"
-                hx-swap="innerHTML"
-                hx-replace-url={`/receipts/${receipt.id}/edit`}
-              >
-                Edit Items
-              </button>
-            </div>
+            <ModeToggle receiptId={receipt.id} claimerName={claimerName} editMode={editMode} />
           )}
         </div>
 
