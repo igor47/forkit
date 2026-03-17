@@ -383,5 +383,7 @@ receiptsRoutes.get("/uploads/:filename", async (c) => {
   const mimeType = getMimeType(filename) || "application/octet-stream"
   c.header("Content-Type", mimeType)
   c.header("Content-Length", file.size.toString())
+  // Uploaded files are immutable (ULID filenames), cache aggressively
+  c.header("Cache-Control", "public, max-age=31536000, immutable")
   return c.body(await file.bytes())
 })
