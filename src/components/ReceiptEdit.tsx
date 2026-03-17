@@ -48,7 +48,20 @@ export const ReceiptEdit = ({
         hx-swap="innerHTML"
       >
         <input type="hidden" name="claimer_name" value={claimerName} />
-        <h5>Edit Items</h5>
+
+        <div class="mb-3">
+          <label for="edit-restaurant-name" class="form-label fw-bold">
+            Restaurant Name
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="edit-restaurant-name"
+            name="restaurant_name"
+            value={receipt.restaurant_name || ""}
+            placeholder="Receipt"
+          />
+        </div>
 
         <table class="table table-sm">
           <thead>

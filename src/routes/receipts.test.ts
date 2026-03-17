@@ -330,6 +330,28 @@ describe("receipts", () => {
       expect(updated.total_cents).toBe(1499) // original LLM total preserved
     })
 
+    test("saves updated restaurant name", async () => {
+      const { receipt } = createTestReceiptWithItems([{ name: "Burger", price_cents: 1499 }], {
+        total_cents: 1499,
+      })
+
+      const formData = new FormData()
+      formData.append("restaurant_name", "The Great Burger Joint")
+      formData.append("name-0", "Burger")
+      formData.append("price-0", "14.99")
+      formData.append("item_count", "1")
+      formData.append("tax", "")
+      formData.append("gratuity", "")
+
+      await makeRequest(testCtx.app, `/receipts/${receipt.id}/edit`, {
+        method: "POST",
+        body: formData,
+      })
+
+      const updated = getReceipt(receipt.id)!
+      expect(updated.restaurant_name).toBe("The Great Burger Joint")
+    })
+
     test("removes item via remove_item action", async () => {
       const { receipt } = createTestReceiptWithItems(
         [

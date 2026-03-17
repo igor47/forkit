@@ -51,14 +51,25 @@ export interface ProcessedReceiptData {
 
 export function updateReceiptTotals(
   id: string,
-  totals: { total_cents: number | null; tax_cents: number | null; gratuity_cents: number | null }
+  totals: {
+    total_cents: number | null
+    tax_cents: number | null
+    gratuity_cents: number | null
+    restaurant_name?: string | null
+  }
 ): void {
   const db = getDb()
   db.run(
     `UPDATE receipts
-     SET total_cents = ?, tax_cents = ?, gratuity_cents = ?, updated_at = datetime('now')
+     SET total_cents = ?, tax_cents = ?, gratuity_cents = ?, restaurant_name = coalesce(?, restaurant_name), updated_at = datetime('now')
      WHERE id = ?`,
-    [totals.total_cents, totals.tax_cents, totals.gratuity_cents, id]
+    [
+      totals.total_cents,
+      totals.tax_cents,
+      totals.gratuity_cents,
+      totals.restaurant_name ?? null,
+      id,
+    ]
   )
 }
 

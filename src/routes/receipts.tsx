@@ -274,6 +274,7 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
     }))
     const editReceipt = {
       ...receipt,
+      restaurant_name: (formData.get("restaurant_name") as string) || null,
       tax_cents: dollarsToCents((formData.get("tax") as string) ?? ""),
       gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
     }
@@ -338,11 +339,12 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
     createReceiptItems(receipt.id, formItems)
   }
 
-  // Update tax and gratuity (total is always computed)
+  // Update totals and restaurant name
   updateReceiptTotals(receipt.id, {
     total_cents: receipt.total_cents, // preserve original LLM-extracted total
     tax_cents: dollarsToCents((formData.get("tax") as string) ?? ""),
     gratuity_cents: dollarsToCents((formData.get("gratuity") as string) ?? ""),
+    restaurant_name: (formData.get("restaurant_name") as string) || null,
   })
 
   // Return to claim mode, replace URL to receipt view (not edit)
@@ -356,6 +358,9 @@ receiptsRoutes.post("/receipts/:id/edit", async (c) => {
       <div id="mode-toggle" hx-swap-oob="true">
         <ModeToggle receiptId={receipt.id} claimerName={claimerName} editMode={false} />
       </div>
+      <h2 class="mb-0" id="receipt-title" hx-swap-oob="true">
+        {updatedReceipt.restaurant_name || "Receipt"}
+      </h2>
     </>
   )
 })

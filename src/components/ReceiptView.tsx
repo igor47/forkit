@@ -22,7 +22,9 @@ export const ReceiptView = ({
   return (
     <div>
       <div class="d-flex align-items-center gap-2 mb-1">
-        <h2 class="mb-0">{receipt.restaurant_name || "Receipt"}</h2>
+        <h2 class="mb-0" id="receipt-title">
+          {receipt.restaurant_name || "Receipt"}
+        </h2>
         <button
           type="button"
           class="btn btn-sm btn-outline-secondary"
