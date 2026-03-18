@@ -43,6 +43,8 @@ Rules:
 - gratuity_cents is the tip/gratuity if printed on the receipt (null if not present)
 - If the image is not a recognizable itemized restaurant receipt, set error to a brief description of why and leave items as an empty array
 - Do not include tax or gratuity as line items — they go in their own fields
+- Discounts, rewards, and coupons should be included as line items with negative price_cents (e.g. "Loyalty Reward" at -375 for -$3.75)
+- If the receipt shows a tip/gratuity amount (even handwritten or on a separate line), capture it in gratuity_cents
 - Respond with ONLY the JSON, no markdown fences or other text`
 
 type ImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp"

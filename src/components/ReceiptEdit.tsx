@@ -148,7 +148,6 @@ export const ReceiptEdit = ({
                         name={`price-${i}`}
                         value={centsToDollars(item.price_cents)}
                         step="0.01"
-                        min="0"
                       />
                     </div>
                   </td>
@@ -203,7 +202,6 @@ export const ReceiptEdit = ({
                         class="form-control form-control-sm"
                         name={`price-${idx}`}
                         step="0.01"
-                        min="0"
                         placeholder="0.00"
                       />
                     </div>
