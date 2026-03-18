@@ -1,5 +1,6 @@
 import { config } from "@src/config"
 import { logger } from "@src/lib/logger"
+import { getOrigin } from "@src/lib/url"
 import { clearAuthCookie, setAuthCookie } from "@src/middleware/auth"
 import { Hono } from "hono"
 import { getSignedCookie, setSignedCookie } from "hono/cookie"
@@ -30,7 +31,7 @@ authRoutes.get("/auth/login", async (c) => {
 
   const oidc = await getOidcConfig()
   const state = generateState()
-  const origin = new URL(c.req.url).origin
+  const origin = getOrigin(c)
   const redirectUri = `${origin}/auth/callback`
 
   // Store state + redirect in a short-lived cookie
