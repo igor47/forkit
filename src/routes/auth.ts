@@ -34,6 +34,15 @@ authRoutes.get("/auth/login", async (c) => {
   const origin = getOrigin(c)
   const redirectUri = `${origin}/auth/callback`
 
+  logger.info("OIDC login", {
+    origin,
+    redirectUri,
+    forwardedProto: c.req.header("x-forwarded-proto"),
+    forwardedHost: c.req.header("x-forwarded-host"),
+    host: c.req.header("host"),
+    url: c.req.url,
+  })
+
   // Store state + redirect in a short-lived cookie
   await setSignedCookie(
     c,
