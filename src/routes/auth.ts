@@ -77,8 +77,15 @@ authRoutes.get("/auth/callback", async (c) => {
 
   const oidc = await getOidcConfig()
 
+  // Reconstruct the callback URL using the public-facing origin
+  // (c.req.url may be http:// internally behind a reverse proxy)
+  const origin = getOrigin(c)
+  const callbackUrl = new URL(c.req.url)
+  callbackUrl.protocol = new URL(origin).protocol
+  callbackUrl.host = new URL(origin).host
+
   try {
-    const tokens = await client.authorizationCodeGrant(oidc, new URL(c.req.url), {
+    const tokens = await client.authorizationCodeGrant(oidc, callbackUrl, {
       expectedState: storedState.state,
       idTokenExpected: true,
     })
@@ -102,8 +109,11 @@ authRoutes.get("/auth/callback", async (c) => {
     })
 
     return c.redirect(storedState.redirect || "/")
-  } catch (e) {
-    logger.error("OIDC callback failed", e as Error)
+  } catch (e: any) {
+    logger.error("OIDC callback failed", e as Error, {
+      callbackUrl: callbackUrl.href,
+      cause: e?.cause?.message ?? e?.message,
+    })
     return c.text("Authentication failed", 500)
   }
 })
